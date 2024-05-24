@@ -1,0 +1,27 @@
+[build-system]
+requires      = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name                = "aistudio-core"
+version             = "0.0.1"
+authors             = [{name = "Ari Kamlani", email = "akamlani@gmail.com"}]
+description         = "AI Studio Core Components"
+requires-python     = ">=3.10"
+readme              = "README.md"
+license             = {text = "MIT"}
+
+[tool.setuptools.packages.find]
+where               = ["."]
+include             = ["aistudio*"]
+
+
+[tool.ruff]
+line-length = 128
+
+[tool.ruff.lint]
+# "E999": unexpected token Newline
+# "F401": module imported but unused
+# "E731": do not assign a lambda expression, use a def
+select = ["E", "F"]
+ignore = ["F841", "F401", "E731"]

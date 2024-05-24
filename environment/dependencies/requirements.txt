@@ -1,0 +1,21 @@
+# base
+python-dotenv
+ipykernel
+# formatting, linting
+ruff
+# printing
+icecream
+rich
+# structure
+pydantic
+Jinja2
+# data processing and i/o
+appdirs
+numpy
+pandas
+pyyaml
+hydra-core
+coloredlogs
+fsspec
+# networking
+requests

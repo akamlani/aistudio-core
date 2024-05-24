@@ -1,0 +1,6 @@
+tokenizers
+transformers
+datasets
+datasets[audio]
+sentence-transformers
+trl

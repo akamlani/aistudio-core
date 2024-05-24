@@ -1,0 +1,6 @@
+# > brew install ffmpeg
+# > brew install espeak espeak-ng
+soundfile
+librosa
+py-espeak-ng
+phonemizer

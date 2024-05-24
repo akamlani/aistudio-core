@@ -1,0 +1,34 @@
+{
+    "prettier.enable": true,
+    "python.terminal.activateEnvironment": true,
+    "terminal.integrated.inheritEnv": true,
+    //editing
+    "editor.tabCompletion": "on",
+    "editor.formatOnType": true,
+    //"editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "files.insertFinalNewline": false,
+    "files.trimFinalNewlines": true,
+    "files.trimTrailingWhitespace": true,
+    //linting and formatting
+    "python.linting.enabled": true,
+    "autoDocstring.docstringFormat": "google",
+    // Configure editor settings to be overridden for [python] language.
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit"
+        }
+    },
+    // Configure editor settings to be overridden for [yaml] language.
+	"[yaml]":  {
+		"editor.tabSize": 2,
+        "editor.detectIndentation": false
+    },
+    "esbonio.sphinx.confDir": "",
+    "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true
+    },
+}
