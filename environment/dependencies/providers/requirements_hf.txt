@@ -4,3 +4,4 @@ datasets
 datasets[audio]
 sentence-transformers
 trl
+huggingface_hub
