@@ -1,3 +1,7 @@
 langchain
+langchain-text-splitters
 langchain-openai
 langchain-aws
+faiss-cpu
+unstructured
+#unstructured[pdf]
