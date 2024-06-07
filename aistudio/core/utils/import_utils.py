@@ -1,6 +1,8 @@
 import  importlib
+from    importlib import import_module
 from    importlib.metadata import version
 from    typing import Any, Optional
+from    types import ModuleType
 
 import logging
 logger = logging.getLogger(__name__)

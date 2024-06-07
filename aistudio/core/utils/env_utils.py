@@ -2,14 +2,9 @@ import warnings
 import subprocess
 import logging
 
-from importlib import import_module
-from types import ModuleType
-from typing import Optional
-
 from pathlib import Path
 from appdirs import user_cache_dir
 from dotenv import dotenv_values, find_dotenv, load_dotenv
-
 
 warnings.filterwarnings("ignore")
 warnings.simplefilter("ignore")
