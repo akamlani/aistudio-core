@@ -1,6 +1,6 @@
 import  importlib
 from    importlib.metadata import version
-from    typing import Any
+from    typing import Any, Optional
 
 import logging
 logger = logging.getLogger(__name__)
