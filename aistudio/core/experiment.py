@@ -15,17 +15,18 @@ logger = logging.getLogger(__name__)
 
 
 class Experiment(object):
-    def __init__(self, root_path:str=None):
+    def __init__(self, root_path:str|Path=None):
         self.seed_init()
         # directories
-        self.root_dir        = Path(read_root_dir()) if not root_path else root_path
+        self.root_dir        = Path(read_root_dir()) if not root_path else Path(root_path)
         self.conf_dir        = self.root_dir.joinpath(Path('config'))
         self.data_dir        = self.root_dir.joinpath(Path('data'))
+
         self.cache_dir       = user_cache_dir()
         # user inforamtion
         self.username        = get_username()
         # load environment
-        self.env:dict        = read_env('.env')
+        self.env:dict        = read_env(self.root_dir.joinpath('.env'))
 
     def register_catalog(self, active_catalog:str) -> Path:
         self.catalog_dir     = active_catalog
