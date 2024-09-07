@@ -8,6 +8,8 @@ from   typing import Any, List
 
 logger = logging.getLogger(__name__)
 
+# compute memory needed to run the model: file_size (MB) * 1.2
+
 # 7B model still requires 280 GB just to fit the model on the hardware
 # Nvidia T4: 16 GB RAM
 

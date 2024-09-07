@@ -1,5 +1,5 @@
 import pandas as pd
-
+import os 
 from pathlib import Path
 from typing import List, Optional
 from urllib.parse import urlparse
@@ -10,8 +10,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-create_dirs  = lambda uri: Path(uri).mkdir(exist_ok=True, parents=True)
-get_username = lambda: Path.home().name
+create_dirs      = lambda uri: Path(uri).mkdir(exist_ok=True, parents=True)
+list_dir_content = lambda uri: s.listdir(uri)
+get_username     = lambda: Path.home().name
 
 
 def search_files(uri: str, extension: str = None) -> List[str]:
@@ -41,8 +42,8 @@ def search_files_to_dataframe(uri: str, extension: str = None) -> pd.DataFrame:
     df = (
         pd.DataFrame(search_files(uri, extension), columns=["uri"])
         .assign(
-            filename=lambda df_: df_.uri.apply(lambda uri: Path(uri).name),
-            name=lambda df_: df_.filename.apply(lambda x: Path(x).stem),
+            filename = lambda df_: df_.uri.apply(lambda uri: Path(uri).name),
+            name     = lambda df_: df_.filename.apply(lambda x: Path(x).stem),
         )
         .sort_values(by=["filename"], ascending=True)
         .reset_index(drop=True)

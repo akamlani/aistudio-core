@@ -19,8 +19,9 @@ class Experiment(object):
         self.seed_init()
         # directories
         self.root_dir        = Path(read_root_dir()) if not root_path else Path(root_path)
-        self.conf_dir        = self.root_dir.joinpath(Path('config'))
-        self.data_dir        = self.root_dir.joinpath(Path('data'))
+        self.conf_dir        = self.root_dir.joinpath('config')
+        self.data_dir        = self.root_dir.joinpath('data')
+        self.catalog_dir     = self.data_dir.joinpath('catalog')
 
         self.cache_dir       = user_cache_dir()
         # user inforamtion
