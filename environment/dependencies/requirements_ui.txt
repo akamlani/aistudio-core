@@ -2,3 +2,4 @@ streamlit
 gradio
 matplotlib
 seaborn
+plotly 

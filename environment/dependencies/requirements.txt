@@ -13,6 +13,7 @@ Jinja2
 appdirs
 numpy
 pandas
+openpyxl
 pyyaml
 hydra-core
 coloredlogs

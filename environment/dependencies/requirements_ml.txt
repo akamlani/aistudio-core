@@ -1,0 +1,4 @@
+# basic modeling
+statsmodels
+# projection
+umap-learn
