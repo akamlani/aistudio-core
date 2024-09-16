@@ -3,6 +3,7 @@ import  numpy  as np
 import  scipy.stats as scs 
 from    typing import List, Union, Optional
 from    types import SimpleNamespace
+from    collections import Counter 
 
 class OutlierDetection(object):
     @classmethod 
@@ -44,9 +45,9 @@ class SchemaInfo(object):
         df_dtype_infer = (df.infer_objects().dtypes).to_frame(f'{col_dtype_name}_inferred')
         df_schema_info =  pd.DataFrame.from_dict(
             [cls.get_data_dtypes(df), cls.get_schema_dtype(df)],
-        ).T.rename(columns={0:col_dtype_name, 1:'schema_dtype'})
+        ).T.rename(columns={0:col_dtype_name, 1:f"logical_{col_dtype_name}"})
         return pd.concat([df_schema_info, df_dtype_infer], axis=1)[[
-            col_dtype_name, f'{col_dtype_name}_inferred', 'schema_dtype'
+            col_dtype_name, f'{col_dtype_name}_inferred', f"logical_{col_dtype_name}"
         ]]
 
     @classmethod
@@ -105,25 +106,25 @@ class InfoTabular(object):
 
     @classmethod 
     def calc_stats(cls, df: pd.DataFrame) -> pd.DataFrame:
-        return pd.DataFrame({col: cls.calc_col_stats(df[col]) for col in df.columns}).T
+        return pd.DataFrame({col: cls.calc_col_numerical_stats(df[col]) for col in df.columns}).T
 
-    @classmethod 
-    def calc_row_stats(cls, ds:pd.Series) -> pd.DataFrame:
-        return ds.to_frame().assign({
-            "|x-mean|" : np.abs(ds - ds.mean())
+    @classmethod
+    def calc_row_stats(cls, df:pd.DataFrame) -> pd.DataFrame:
+        return df.assign(**{
+            f"|{col}-mean|": np.abs(df[col] - df[col].mean()) for col in df.columns
         })
 
     @classmethod 
-    def calc_col_stats(cls, ds:pd.Series) -> dict:
+    def calc_col_numerical_stats(cls, ds:pd.Series) -> dict:
         """
         Kurtosis: quantify the shape of the distribution, determine the peakiness, heaviness of the distribution
-        - measures the sharpness of the peak fo the frequency distributioin curve , a measure of outliers present in the distribution
+        - measures the sharpness of the peak fo the frequency distribution curve , a measure of outliers present in the distribution
         - distribution with higher kurosis has a heavier tail 
         - + means pointy, - means flat 
         - excess kurtosis: determine by subtracting 3 from kurtosis.  makes the normal distribution kurtosis equal .
         - tall and thin (kurtosis > 3): near the mean or at the extremes 
         - flat distribution (kurtosis <3): moderately spread out
-        - (kurtosis == 3): looks moreclose to normal distribution
+        - (kurtosis == 3): looks more close to normal distribution
         - high kurtosis is an indicator that data has heavy outliers
         - low  kurtosis is an indicator that the data has a lack of outliers
 
@@ -136,10 +137,14 @@ class InfoTabular(object):
         """
         dtype = ds.dtype 
         stats = dict()
+        
+        def _range(xs): 
+            return (xs.max() - xs.min())
+
         if pd.api.types.is_numeric_dtype(dtype):
             stats = {
-                fn.__name__:round(fn(ds), 3)
-                for fn in [np.min, np.max, np.median, np.mean, np.std, scs.kurtosis, scs.skew]
+                fn.__name__.lstrip('_'):round(fn(ds), 3)
+                for fn in [np.min, np.max, np.median, _range, np.mean, np.std, scs.kurtosis, scs.skew]
             }
             stats |= {fn.__name__:round( fn(ds,  ddof=1, nan_policy='omit'), 3) for fn in [scs.variation]}
 
@@ -159,8 +164,28 @@ class InfoTabular(object):
             for col in df.columns
         }, name="samples")
 
+    @classmethod 
+    def calc_col_categorical_stats(cls, ds:pd.Series, k:Optional[int]=None) -> dict:
+        cnt       = Counter(ds)
+        dat       = pd.Series(cnt).sort_values(ascending=False)
+
+        total_sz  = sum(cnt.values())
+        mc        = cnt.most_common(k) if k is not None else cnt.most_common()
+        kv_cnt    = dict(mc)
+        kv_pct    = {field_name:round(((count/total_sz)*100),3) for field_name, count in kv_cnt.items()} 
+
+        cardinality  = len(cnt)
+        categories_k = list(kv_cnt)
+        top, bottom  = dat.index[0], dat.index[-1]  
+        return (
+            dict(cardinality=cardinality, top=top, bottom=bottom) 
+            | {f'categories_top_{k}'         if k else 'categories': categories_k} 
+            | {f'distribution_cnt_top_{k}'   if k else 'distribution_cnt': kv_cnt} 
+            | {f'distribution_pct_top_{k}'   if k else 'distribution_pct': kv_pct}
+        )
+
     @classmethod
-    def calc_distribution(cls, df:pd.DataFrame, col:str) -> pd.Series:
+    def calc_categorical_distribution(cls, df:pd.DataFrame, col:str) -> pd.Series:
         "calculates distribution of column"
         return df[col].value_counts().to_frame('count')
 
@@ -168,12 +193,12 @@ class InfoTabular(object):
     def calc_sparsity(cls, df:pd.DataFrame) -> pd.DataFrame:
         "calculates missing values"
         return (
-            df.isnull().sum().to_frame('count')
+            df.isnull().sum().to_frame('count').astype(int)
             .assign(
                 pct = lambda df_: df_['count'].transform(lambda x: x/len(df)*100)
             ).sort_values(
                 by=['count'], ascending=False
-            )
+            ).round(3)
         )
 
 class InfoText(object):
@@ -197,7 +222,7 @@ class InfoDateTime(object):
     @classmethod
     def calc_dt_stats(cls, data: Union[pd.DataFrame, pd.Series], col: Optional[str] = 'date'):
         if isinstance(data, pd.DataFrame):
-            data_ts = data.index if col in data.index.name else data[col]
+            data_ts = data.index if data.index.name is not None and col in data.index.name else data[col]
         elif isinstance(data, pd.Series): 
             data_ts = data.index 
 

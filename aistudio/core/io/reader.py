@@ -20,6 +20,17 @@ T = TypeVar("T", pd.DataFrame, DictConfig, Dict[str, Any], List[Any], Any, None)
 dwld_file     = lambda src_uri, dst_name: urllib.request.urlretrieve(src_uri, dst_name)
 hydra_to_yaml = lambda cfg: OmegaConf.to_yaml(cfg)
 
+def read_content(filename:str, ext='.csv') -> pd.DataFrame:
+    with open(filename, 'r') as f:
+        csv_reader = csv.DictReader(f)
+        content    = [row for row in csv_reader]
+        return pd.DataFrame(content)
+
+def read_remote_content(uri:str) -> dict:
+    import requests 
+    return requests.get(uri).content
+
+
 
 def read_exec_io(
     func: Callable[[str, Tuple[Any, ...], Dict[str, Any]], T],

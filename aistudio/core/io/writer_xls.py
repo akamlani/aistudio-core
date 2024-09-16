@@ -1,7 +1,8 @@
 import  pandas as pd 
 from    typing import List 
 from    pathlib import Path 
-from    openpyxl.styles import PatternFill, Font
+from    openpyxl.styles import PatternFill, Font, Border, Side 
+
 
 class ExcelFileWriter(object):
     """
@@ -16,8 +17,7 @@ class ExcelFileWriter(object):
         self.engine = engine 
         self.kwargs = kwargs 
         # defaults: Create a pattern fill for coloring the header
-        self.header_pattern = PatternFill(start_color="000000", end_color="000000", fill_type="solid") 
-        self.text_color     = Font(color="FFFFFF")
+        self.header_pattern = PatternFill(start_color="000033", end_color="000033", fill_type="solid") 
         self.pad_width      = 5 
 
 
@@ -27,6 +27,10 @@ class ExcelFileWriter(object):
             self.sheet_name = sheet_name
             return pd.read_excel(reader, sheet_name, engine=self.engine, **kwargs)  
 
+
+    def read_sheet_names(self, filename:str, **kwargs) -> List[str]:
+        with pd.ExcelFile(filename) as reader:
+            return reader.sheet_names
 
     def write_excel(self, df:pd.DataFrame, filename:str, sheet_name:str, with_index:bool=True, **kwargs):
         # if file exists, mode='a' or 'w'
@@ -45,15 +49,24 @@ class ExcelFileWriter(object):
             sheets     = workbook.worksheets  
             worksheet  = writer.sheets[sheet_name]
             header_row = next(worksheet.iter_rows(min_row=1, max_row=1))
-            # adjust header 
+            # adjust index properties first
+            self.adjust_index_format(df, worksheet)
+            # adjust header and widths
             self.adjust_header_cell(worksheet, header_row)
             self.adjust_widths(worksheet)
+            # alignment wrapping 
+            for row in worksheet.iter_rows():
+                for cell in row:
+                    cell.alignment = cell.alignment.copy(wrapText=True)  # Enable wrap text for all cells
+
+            workbook.save(filename)
 
     def adjust_header_cell(self, worksheet, header, freeze_panes:bool=True) -> None:
-        # Color the header row (assuming first row is the header)
+        # Color the header row (assuming first row is the header), but skipping the index values
         for cell in header:  
-            cell.fill = self.header_pattern
-            cell.font = self.text_color
+            cell.fill   = self.header_pattern
+            cell.font   = Font(bold=True, color="FFFFFF")
+
         # Freeze the first row (A2 cell will be the top-left unfrozen cell), (above row 2)
         if freeze_panes:
             worksheet.freeze_panes = worksheet['A2']  
@@ -67,3 +80,30 @@ class ExcelFileWriter(object):
         # Set the column widths
         for col_letter, width in column_widths.items():
             worksheet.column_dimensions[col_letter].width = width
+
+    def adjust_index_format(self, frame:pd.DataFrame, worksheet) -> None: 
+        # Define the style to remove bold and borders
+        no_bold   = Font(bold=True, color="000000")
+        no_border = Border()
+
+        # Apply formatting to the index column (which is the first column) for the index values
+        for i, idx in enumerate(frame.index, start=2):  # start=2 because row 1 is the header
+            cell = worksheet.cell(row=i, column=1)      # Index column is always the first column
+            cell.font   = no_bold
+            cell.border = no_border
+
+        # keep index name 
+        if frame.index.name:
+            index_name_cell        = worksheet.cell(row=1, column=1)
+            index_name_cell.value  = frame.index.name  
+            index_name_cell.font   = no_bold
+            index_name_cell.border = no_border
+
+
+        # # Write the index values without bold or border
+        # for row_num, index_value in enumerate(frame.index, start=1):
+        #     cell = worksheet.cell(row=row_num, column=index_value)
+        #     cell.font   = n_bold 
+        #     cell.border = no_border 
+            
+
